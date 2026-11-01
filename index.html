@@ -4,88 +4,82 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>🐱 CAT COMBAT</title>
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<title>CAT COMBAT</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div class="app">
-<h1>🐱 CAT COMBAT</h1>
 
-<div class="wallet">
-  <div>🪙 <span id="coins">0</span></div>
-  <div>💎 <span id="gems">10</span></div>
-  <div>⭐ <span id="xp">0</span></div>
-</div>
+<header>
+    <h1>🐱 CAT COMBAT</h1>
+    <div class="wallet">
+        <span>🪙 <b id="coins">0</b></span>
+        <span>💎 <b id="gems">0</b></span>
+        <span>⭐ <b id="xp">0</b></span>
+    </div>
+</header>
+
+<main>
+    <section id="catPage" class="page active">
+        <h2>Твій кіт</h2>
+        <div id="cat" class="cat" onclick="tapCat()">🐱</div>
+        <p>Сила: <b id="power">1</b></p>
+        <p>Дохід: <b id="income">0</b> монет/хв</p>
+        <button onclick="tapCat()">НАТИСНИ НА КОТА</button>
+
+        <div class="promo-box">
+            <h2>🎁 ПРОМОКОД</h2>
+            <input id="promoInput" placeholder="Введи промокод">
+            <button onclick="activatePromo()">АКТИВУВАТИ</button>
+            <p id="promoMessage"></p>
+            <p id="promoStatus"></p>
+        </div>
+    </section>
+
+    <section id="upgradePage" class="page">
+        <h2>⚡ Покращення</h2>
+        <div class="item">
+            <p>Сила натискання</p>
+            <button onclick="buyUpgrade('power')">Покращити — <span id="powerCost">50</span> 🪙</button>
+        </div>
+        <div class="item">
+            <p>Пасивний дохід</p>
+            <button onclick="buyUpgrade('income')">Покращити — <span id="incomeCost">100</span> 🪙</button>
+        </div>
+        <div class="item">
+            <p>Шанс отримати кристали</p>
+            <button onclick="buyUpgrade('gems')">Покращити — <span id="gemCost">10</span> 💎</button>
+        </div>
+        <h2>🧪 Зілля</h2>
+        <button onclick="buyPotion()">Купити зілля — 200 🪙</button>
+        <p id="potionStatus"></p>
+    </section>
+
+    <section id="boxesPage" class="page">
+        <h2>🎁 Скриньки</h2>
+        <button onclick="openBox('common')">Звичайна — 100 🪙</button>
+        <button onclick="openBox('rare')">Рідкісна — 500 🪙</button>
+        <button onclick="openBox('epic')">Епічна — 15 💎</button>
+        <button onclick="openBox('legendary')">Легендарна — 50 💎</button>
+        <p id="boxResult"></p>
+    </section>
+
+    <section id="wheelPage" class="page">
+        <h2>🎡 Колесо удачі</h2>
+        <div class="wheel">🎁 🪙 💎 ⭐ 🎂</div>
+        <button onclick="spinWheel()">КРУТИТИ КОЛЕСО</button>
+        <p id="wheelResult"></p>
+        <p id="wheelTimer"></p>
+    </section>
+</main>
 
 <nav>
-<button onclick="show('home')">🐱 Кіт</button>
-<button onclick="show('upgrades')">⚡ Прокачка</button>
-<button onclick="show('boxes')">🎁 Ящики</button>
-<button onclick="show('wheel')">🎡 Колесо</button>
+    <button onclick="showPage('catPage')">🐱 Кіт</button>
+    <button onclick="showPage('upgradePage')">⚡ Апгрейди</button>
+    <button onclick="showPage('boxesPage')">🎁 Скриньки</button>
+    <button onclick="showPage('wheelPage')">🎡 Колесо</button>
 </nav>
 
-<div class="promo-box">
-    <h2>🎁 ПРОМОКОД</h2>
-    <input
-        id="promoInput"
-        type="text"
-        placeholder="Введи промокод..."
-    >
-    <button onclick="activatePromo()">АКТИВУВАТИ</button>
-    <p id="promoMessage"></p>
-</div>
-
-<div class="promo-box">
-    <h2>🎁 ПРОМОКОД</h2>
-    <input
-        id="promoInput"
-        type="text"
-        placeholder="Введи промокод..."
-    >
-    <button onclick="activatePromo()">АКТИВУВАТИ</button>
-    <p id="promoMessage"></p>
-</div>
-
-<section id="home">
-<h2>Мій котик</h2>
-<button id="cat" onclick="tap()">🐱</button>
-<p>Натискай на кота!</p>
-<p>За клік: <b id="power">1</b> 🪙</p>
-<h2>🧪 Зілля</h2>
-<button onclick="potion('coins')">Зілля монет · 3 💎</button>
-<button onclick="potion('xp')">Зілля XP · 3 💎</button>
-<p id="boost">Бонуси не активні</p>
-</section>
-
-<section id="upgrades" hidden>
-<h2>⚡ Прокачування</h2>
-<p>Сильна лапка</p>
-<button onclick="buyTap()">Купити · <span id="tapCost">25</span> 🪙</button>
-<p>Котячий магніт</p>
-<button onclick="buyIncome()">Купити · <span id="incomeCost">100</span> 🪙</button>
-<p>Кристальний талант</p>
-<button onclick="buyGem()">Купити · <span id="gemCost">10</span> 💎</button>
-<p>Шанс кристалів: <b id="chance">2</b>%</p>
-</section>
-
-<section id="boxes" hidden>
-<h2>🎁 Ящики</h2>
-<button onclick="openBox('common')">📦 Звичайний · 100 🪙</button>
-<button onclick="openBox('rare')">🧰 Рідкісний · 500 🪙</button>
-<button onclick="openBox('epic')">🎁 Епічний · 15 💎</button>
-<button onclick="openBox('legendary')">👑 Легендарний · 50 💎</button>
-<h3 id="boxResult">Нагорода з'явиться тут</h3>
-</section>
-
-<section id="wheel" hidden>
-<h2>🎡 Колесо фортуни</h2>
-<div id="wheel">🎡</div>
-<button id="spin" onclick="spin()">КРУТИТИ</button>
-<p id="wheelResult">Удачі!</p>
-<p id="timer"></p>
-</section>
-</div>
 <script src="game.js"></script>
 </body>
 </html>
+

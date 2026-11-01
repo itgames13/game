@@ -1,230 +1,205 @@
 
-const tg = window.Telegram?.WebApp;
-tg?.ready();
-tg?.expand();
+const $ = id => document.getElementById(id);
 
-let s = JSON.parse(localStorage.getItem("catSave") || "null") || {
-  coins: 0, gems: 10, xp: 0,
-  power: 1, tapLevel: 1,
-  income: 0, incomeLevel: 0,
-  chance: 2, gemLevel: 0,
-  lastSpin: 0
+const PROMO_DURATION = 24 * 60 * 60 * 1000;
+
+let saved = localStorage.getItem("catCombatSave");
+
+let game = saved ? JSON.parse(saved) : {
+    coins: 0,
+    gems: 0,
+    xp: 0,
+    power: 1,
+    income: 0,
+    powerCost: 50,
+    incomeCost: 100,
+    gemCost: 10,
+    gemChance: 10,
+    potionUntil: 0,
+    wheelUntil: 0
 };
 
-let coinBoost = 0;
-let xpBoost = 0;
-
 function save() {
-  localStorage.setItem("catSave", JSON.stringify(s));
-  render();
+    localStorage.setItem("catCombatSave", JSON.stringify(game));
+}
+
+function promoActive() {
+    return Number(localStorage.getItem("promoExpires") || 0) > Date.now();
+}
+
+function multiplier() {
+    return promoActive() ? 2 : 1;
 }
 
 function render() {
-  coins.textContent = Math.floor(s.coins);
-  gems.textContent = s.gems;
-  xp.textContent = s.xp;
-  power.textContent = s.power;
-  tapCost.textContent = Math.ceil(25 * 1.65 ** (s.tapLevel - 1));
-  incomeCost.textContent = Math.ceil(100 * 1.75 ** s.incomeLevel);
-  gemCost.textContent = Math.ceil(10 * 1.8 ** s.gemLevel);
-  chance.textContent = s.chance;
+    $("coins").textContent = Math.floor(game.coins);
+    $("gems").textContent = game.gems;
+    $("xp").textContent = game.xp;
+    $("power").textContent = game.power * multiplier();
+    $("income").textContent = game.income * multiplier();
+
+    $("powerCost").textContent = game.powerCost;
+    $("incomeCost").textContent = game.incomeCost;
+    $("gemCost").textContent = game.gemCost;
+
+    $("cat").textContent = promoActive() ? "🐱🎂🎉" : "🐱";
+
+    $("promoStatus").textContent = promoActive()
+        ? "🎉 Подвійні бонуси активні!"
+        : "Промокод дає бонуси на 24 години";
+
+    $("potionStatus").textContent =
+        Date.now() < game.potionUntil ? "🧪 Зілля активне!" : "";
+
+    save();
 }
 
-function tap() {
-  let amount = s.power * (Date.now() < coinBoost ? 2 : 1);
-  s.coins += amount;
-  s.xp += Date.now() < xpBoost ? 2 : 1;
+function tapCat() {
+    let power = game.power * multiplier();
 
-  if (Math.random() * 100 < s.chance) {
-    s.gems++;
-  }
+    if (Date.now() < game.potionUntil) {
+        power *= 2;
+    }
 
-  tg?.HapticFeedback?.impactOccurred("light");
-  save();
+    game.coins += power;
+    game.xp += multiplier();
+
+    if (Math.random() * 100 < game.gemChance) {
+        game.gems++;
+    }
+
+    render();
 }
 
-function show(id) {
-  ["home","upgrades","boxes","wheel"].forEach(x => {
-    document.getElementById(x).hidden = x !== id;
-  });
+function buyUpgrade(type) {
+    if (type === "power" && game.coins >= game.powerCost) {
+        game.coins -= game.powerCost;
+        game.power++;
+        game.powerCost = Math.floor(game.powerCost * 1.7);
+    }
+
+    if (type === "income" && game.coins >= game.incomeCost) {
+        game.coins -= game.incomeCost;
+        game.income++;
+        game.incomeCost = Math.floor(game.incomeCost * 1.7);
+    }
+
+    if (type === "gems" && game.gems >= game.gemCost) {
+        game.gems -= game.gemCost;
+        game.gemChance += 5;
+        game.gemCost = Math.floor(game.gemCost * 1.8);
+    }
+
+    render();
 }
 
-function buyTap() {
-  let cost = Math.ceil(25 * 1.65 ** (s.tapLevel - 1));
-  if (s.coins < cost) return alert("Мало монет!");
-  s.coins -= cost;
-  s.power++;
-  s.tapLevel++;
-  save();
-}
+function buyPotion() {
+    if (game.coins < 200) return;
 
-function buyIncome() {
-  let cost = Math.ceil(100 * 1.75 ** s.incomeLevel);
-  if (s.coins < cost) return alert("Мало монет!");
-  s.coins -= cost;
-  s.income++;
-  s.incomeLevel++;
-  save();
-}
+    game.coins -= 200;
+    game.potionUntil = Date.now() + 30000;
 
-function buyGem() {
-  let cost = Math.ceil(10 * 1.8 ** s.gemLevel);
-  if (s.gems < cost || s.chance >= 30)
-    return alert("Недостатньо кристалів!");
-  s.gems -= cost;
-  s.chance = Math.min(30, s.chance + 2);
-  s.gemLevel++;
-  save();
-}
-
-function potion(type) {
-  if (s.gems < 3) return alert("Мало кристалів!");
-  s.gems -= 3;
-  if (type === "coins") coinBoost = Date.now() + 30000;
-  else xpBoost = Date.now() + 30000;
-  boost.textContent = "🧪 Бонус активний 30 секунд!";
-  save();
+    render();
 }
 
 function openBox(type) {
-  const boxes = {
-    common: [100,"coins",[
-      ["50 монет",50,0,0],
-      ["150 монет",150,0,0],
-      ["1 кристал",0,1,0],
-      ["20 XP",0,0,20],
-      ["+1 сила",0,0,10]
-    ]],
-    rare: [500,"coins",[
-      ["300 монет",300,0,0],
-      ["700 монет",700,0,0],
-      ["5 кристалів",0,5,0],
-      ["100 XP",0,0,100],
-      ["+2 сили",0,0,50]
-    ]],
-    epic: [15,"gems",[
-      ["10 кристалів",0,10,0],
-      ["1500 монет",1500,0,0],
-      ["250 XP",0,0,250],
-      ["+5 сили",0,0,100]
-    ]],
-    legendary: [50,"gems",[
-      ["25 кристалів",0,25,0],
-      ["5000 монет",5000,0,0],
-      ["1000 XP",0,0,1000],
-      ["+15 сили",0,0,300]
-    ]]
-  };
+    const costs = {
+        common: 100,
+        rare: 500,
+        epic: 15,
+        legendary: 50
+    };
 
-  let b = boxes[type];
-  if (s[b[1]] < b[0]) return alert("Недостатньо ресурсів!");
+    if (type === "common" || type === "rare") {
+        if (game.coins < costs[type]) return;
+        game.coins -= costs[type];
+    } else {
+        if (game.gems < costs[type]) return;
+        game.gems -= costs[type];
+    }
 
-  s[b[1]] -= b[0];
-  let r = b[2][Math.floor(Math.random() * b[2].length)];
-  s.coins += r[1];
-  s.gems += r[2];
-  s.xp += r[3];
+    let reward = Math.floor(Math.random() * 4);
 
-  if (r[0].includes("сили")) {
-    s.power += type === "common" ? 1 :
-      type === "rare" ? 2 :
-      type === "epic" ? 5 : 15;
-  }
+    if (reward === 0) {
+        let amount = 100 * (type === "legendary" ? 20 : 1);
+        game.coins += amount;
+        $("boxResult").textContent = "🪙 +" + amount + " монет!";
+    } else if (reward === 1) {
+        game.xp += 50;
+        $("boxResult").textContent = "⭐ +50 XP!";
+    } else if (reward === 2) {
+        game.power++;
+        $("boxResult").textContent = "💪 +1 сила!";
+    } else {
+        game.gems += 3;
+        $("boxResult").textContent = "💎 +3 кристали!";
+    }
 
-  boxResult.textContent = "🎉 Тобі випало: " + r[0];
-  save();
+    render();
 }
 
-function spin() {
-  const cooldown = 12 * 60 * 60 * 1000;
-  if (Date.now() - s.lastSpin < cooldown)
-    return alert("Колесо ще відновлюється!");
-
-  const rewards = [
-    ["200 монет", () => s.coins += 200],
-    ["3 кристали", () => s.gems += 3],
-    ["100 XP", () => s.xp += 100],
-    ["500 монет", () => s.coins += 500],
-    ["10 кристалів", () => s.gems += 10],
-    ["+2 сили", () => s.power += 2],
-    ["1000 монет", () => s.coins += 1000],
-    ["5 кристалів", () => s.gems += 5]
-  ];
-
-  const r = rewards[Math.floor(Math.random() * rewards.length)];
-  const disc = document.getElementById("wheel");
-  disc.style.transition = "transform 3s";
-  disc.style.transform = "rotate(1800deg)";
-
-  setTimeout(() => {
-    r[1]();
-    s.lastSpin = Date.now();
-    wheelResult.textContent = "🎉 Виграш: " + r[0];
-    save();
-  }, 3000);
-}
-
-setInterval(() => {
-  if (s.income > 0) {
-    s.coins += s.income;
-    s.xp += Math.max(1, Math.floor(s.income / 5));
-    save();
-  }
-}, 60000);
-
-render();
-
-// ===== ПРОМОКОД Vitaliy41 =====
-
-const PROMO_CODE = "Vitaliy41";
-const PROMO_DURATION = 24 * 60 * 60 * 1000;
-
-// Перевірка, чи промокод уже активували
-if (localStorage.getItem("vitaliy41_used") === "true") {
-    console.log("Промокод уже використано");
-}
-
-// Активація промокоду
-function activatePromo() {
-    const input = document.getElementById("promoInput");
-    const message = document.getElementById("promoMessage");
-
-    if (!input || !message) return;
-
-    const code = input.value.trim();
-
-    if (localStorage.getItem("vitaliy41_used") === "true") {
-        message.textContent = "❌ Цей промокод уже активовано!";
+function spinWheel() {
+    if (Date.now() < game.wheelUntil) {
+        $("wheelResult").textContent = "⏳ Колесо ще відновлюється!";
         return;
     }
 
-    if (code !== PROMO_CODE) {
+    game.wheelUntil = Date.now() + 12 * 60 * 60 * 1000;
+
+    let reward = Math.floor(Math.random() * 4);
+
+    if (reward === 0) {
+        game.coins += 500 * multiplier();
+        $("wheelResult").textContent = "🪙 +500 монет!";
+    } else if (reward === 1) {
+        game.gems += 10;
+        $("wheelResult").textContent = "💎 +10 кристалів!";
+    } else if (reward === 2) {
+        game.xp += 100 * multiplier();
+        $("wheelResult").textContent = "⭐ +100 XP!";
+    } else {
+        game.power++;
+        $("wheelResult").textContent = "💪 +1 сила!";
+    }
+
+    render();
+}
+
+function activatePromo() {
+    const message = $("promoMessage");
+    const input = $("promoInput");
+
+    if (localStorage.getItem("vitaliy41_used") === "true") {
+        message.textContent = "❌ Промокод уже використано!";
+        return;
+    }
+
+    if (input.value.trim() !== "Vitaliy41") {
         message.textContent = "❌ Неправильний промокод!";
         return;
     }
 
-    const expires = Date.now() + PROMO_DURATION;
-
     localStorage.setItem("vitaliy41_used", "true");
-    localStorage.setItem("promoExpires", expires);
+    localStorage.setItem("promoExpires", Date.now() + PROMO_DURATION);
 
-    message.textContent = "🎉 Промокод активовано! Усі бонуси x2 на 24 години!";
+    message.textContent = "🎉 Успішно! Усі бонуси x2 на 24 години!";
+    input.disabled = true;
 
-    if (typeof render === "function") render();
+    render();
 }
 
-// Перевірка активного бонусу
-function isPromoActive() {
-    const expires = Number(localStorage.getItem("promoExpires") || 0);
-    return expires > Date.now();
+function showPage(page) {
+    document.querySelectorAll(".page").forEach(p => {
+        p.classList.remove("active");
+    });
+
+    $(page).classList.add("active");
 }
 
-// Множник монет, сили та XP
-function getPromoMultiplier() {
-    return isPromoActive() ? 2 : 1;
-}
+setInterval(() => {
+    game.coins += game.income * multiplier();
+    render();
+}, 60000);
 
-// Святковий кіт
-function getPromoCat() {
-    return isPromoActive() ? "🐱🎂🎉" : "🐱";
-}
+render();
+
