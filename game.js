@@ -173,3 +173,58 @@ setInterval(() => {
 }, 60000);
 
 render();
+
+// ===== ПРОМОКОД Vitaliy41 =====
+
+const PROMO_CODE = "Vitaliy41";
+const PROMO_DURATION = 24 * 60 * 60 * 1000;
+
+// Перевірка, чи промокод уже активували
+if (localStorage.getItem("vitaliy41_used") === "true") {
+    console.log("Промокод уже використано");
+}
+
+// Активація промокоду
+function activatePromo() {
+    const input = document.getElementById("promoInput");
+    const message = document.getElementById("promoMessage");
+
+    if (!input || !message) return;
+
+    const code = input.value.trim();
+
+    if (localStorage.getItem("vitaliy41_used") === "true") {
+        message.textContent = "❌ Цей промокод уже активовано!";
+        return;
+    }
+
+    if (code !== PROMO_CODE) {
+        message.textContent = "❌ Неправильний промокод!";
+        return;
+    }
+
+    const expires = Date.now() + PROMO_DURATION;
+
+    localStorage.setItem("vitaliy41_used", "true");
+    localStorage.setItem("promoExpires", expires);
+
+    message.textContent = "🎉 Промокод активовано! Усі бонуси x2 на 24 години!";
+
+    if (typeof render === "function") render();
+}
+
+// Перевірка активного бонусу
+function isPromoActive() {
+    const expires = Number(localStorage.getItem("promoExpires") || 0);
+    return expires > Date.now();
+}
+
+// Множник монет, сили та XP
+function getPromoMultiplier() {
+    return isPromoActive() ? 2 : 1;
+}
+
+// Святковий кіт
+function getPromoCat() {
+    return isPromoActive() ? "🐱🎂🎉" : "🐱";
+}
