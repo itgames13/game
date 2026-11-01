@@ -55,3 +55,39 @@ section {
   font-size: 100px;
   margin: 20px;
 }
+
+.promo-box {
+    background: #242044;
+    border: 2px solid #a879ff;
+    border-radius: 16px;
+    padding: 16px;
+    margin: 15px 0;
+    text-align: center;
+}
+
+.promo-box h2 {
+    color: #d8b5ff;
+}
+
+.promo-box input {
+    width: 90%;
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid #a879ff;
+    background: #17152b;
+    color: white;
+    margin-bottom: 10px;
+}
+
+.promo-box button {
+    background: #a879ff;
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 10px;
+    font-weight: bold;
+}
+
+#promoMessage {
+    color: #ffffff;
+}
