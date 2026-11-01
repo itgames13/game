@@ -1,0 +1,57 @@
+
+body {
+  margin: 0;
+  background: #101323;
+  color: white;
+  font-family: Arial;
+  text-align: center;
+}
+.app {
+  max-width: 500px;
+  margin: auto;
+  padding: 20px;
+}
+h1 { color: #ffcf62; }
+.wallet {
+  display: flex;
+  justify-content: space-around;
+  background: #252c48;
+  padding: 15px;
+  border-radius: 15px;
+  font-weight: bold;
+}
+nav {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 20px 0;
+}
+button {
+  background: #6659c9;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 13px;
+  margin: 5px;
+  font-weight: bold;
+}
+#cat {
+  font-size: 100px;
+  background: #252c48;
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+}
+#cat:active {
+  transform: scale(.9);
+}
+section {
+  background: #1d243c;
+  border-radius: 18px;
+  padding: 15px;
+  margin-top: 10px;
+}
+#wheel {
+  font-size: 100px;
+  margin: 20px;
+}

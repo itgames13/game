@@ -1,0 +1,69 @@
+
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>🐱 CAT COMBAT</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app">
+<h1>🐱 CAT COMBAT</h1>
+
+<div class="wallet">
+  <div>🪙 <span id="coins">0</span></div>
+  <div>💎 <span id="gems">10</span></div>
+  <div>⭐ <span id="xp">0</span></div>
+</div>
+
+<nav>
+<button onclick="show('home')">🐱 Кіт</button>
+<button onclick="show('upgrades')">⚡ Прокачка</button>
+<button onclick="show('boxes')">🎁 Ящики</button>
+<button onclick="show('wheel')">🎡 Колесо</button>
+</nav>
+
+<section id="home">
+<h2>Мій котик</h2>
+<button id="cat" onclick="tap()">🐱</button>
+<p>Натискай на кота!</p>
+<p>За клік: <b id="power">1</b> 🪙</p>
+<h2>🧪 Зілля</h2>
+<button onclick="potion('coins')">Зілля монет · 3 💎</button>
+<button onclick="potion('xp')">Зілля XP · 3 💎</button>
+<p id="boost">Бонуси не активні</p>
+</section>
+
+<section id="upgrades" hidden>
+<h2>⚡ Прокачування</h2>
+<p>Сильна лапка</p>
+<button onclick="buyTap()">Купити · <span id="tapCost">25</span> 🪙</button>
+<p>Котячий магніт</p>
+<button onclick="buyIncome()">Купити · <span id="incomeCost">100</span> 🪙</button>
+<p>Кристальний талант</p>
+<button onclick="buyGem()">Купити · <span id="gemCost">10</span> 💎</button>
+<p>Шанс кристалів: <b id="chance">2</b>%</p>
+</section>
+
+<section id="boxes" hidden>
+<h2>🎁 Ящики</h2>
+<button onclick="openBox('common')">📦 Звичайний · 100 🪙</button>
+<button onclick="openBox('rare')">🧰 Рідкісний · 500 🪙</button>
+<button onclick="openBox('epic')">🎁 Епічний · 15 💎</button>
+<button onclick="openBox('legendary')">👑 Легендарний · 50 💎</button>
+<h3 id="boxResult">Нагорода з'явиться тут</h3>
+</section>
+
+<section id="wheel" hidden>
+<h2>🎡 Колесо фортуни</h2>
+<div id="wheel">🎡</div>
+<button id="spin" onclick="spin()">КРУТИТИ</button>
+<p id="wheelResult">Удачі!</p>
+<p id="timer"></p>
+</section>
+</div>
+<script src="game.js"></script>
+</body>
+</html>
